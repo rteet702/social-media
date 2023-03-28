@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model comments {
+  id        Int       @id @default(autoincrement())
+  content   String?   @db.Text
+  createdAt DateTime? @default(now()) @db.DateTime(0)
+  updatedAt DateTime? @default(now()) @db.DateTime(0)
+  user_id   Int
+  post_id   Int
+  posts     posts     @relation(fields: [post_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_comments_posts1")
+  users     users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_replies_users1")
+
+  @@index([post_id], map: "fk_comments_posts1_idx")
+  @@index([user_id], map: "fk_replies_users1_idx")
+}
+
+model posts {
+  id               Int                @id @default(autoincrement())
+  content          String?            @db.LongText
+  createdAt        DateTime?          @default(now()) @db.DateTime(0)
+  updatedAt        DateTime?          @default(now()) @db.DateTime(0)
+  user_id          Int
+  comments         comments[]
+  users            users              @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_posts_users")
+  users_like_posts users_like_posts[]
+
+  @@index([user_id], map: "fk_posts_users_idx")
+}
+
+model users {
+  id               Int                @id @default(autoincrement())
+  firstName        String?            @db.VarChar(45)
+  lastName         String?            @db.VarChar(45)
+  email            String?            @db.VarChar(45)
+  password         String?            @db.VarChar(255)
+  createdAt        DateTime?          @default(now()) @db.DateTime(0)
+  updatedAt        DateTime?          @default(now()) @db.DateTime(0)
+  comments         comments[]
+  posts            posts[]
+  users_like_posts users_like_posts[]
+}
+
+model users_like_posts {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime? @default(now()) @db.DateTime(0)
+  updatedAt DateTime? @default(now()) @db.DateTime(0)
+  user_id   Int
+  post_id   Int
+  posts     posts     @relation(fields: [post_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_likes_posts1")
+  users     users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_likes_users1")
+
+  @@index([post_id], map: "fk_likes_posts1_idx")
+  @@index([user_id], map: "fk_likes_users1_idx")
+}
